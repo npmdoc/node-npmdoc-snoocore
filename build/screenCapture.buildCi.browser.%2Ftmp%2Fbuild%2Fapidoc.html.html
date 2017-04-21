@@ -1,0 +1,173 @@
+<html><head></head><body><div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a>snoocore (v3.3.1)</a>
+</h1>
+<h4>A minimal and complete JavaScript driver for the Reddit API.</h4>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.snoocore">module snoocore</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.snoocore.snoocore">
+            function <span class="apidocSignatureSpan"></span>snoocore
+            <span class="apidocSignatureSpan">(userConfiguration)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.snoocore" id="apidoc.module.snoocore">module snoocore</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.snoocore.snoocore" id="apidoc.element.snoocore.snoocore">
+        function <span class="apidocSignatureSpan"></span>snoocore
+        <span class="apidocSignatureSpan">(userConfiguration)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function Snoocore(userConfiguration) {
+  var _this = this;
+
+  _classCallCheck(this, Snoocore);
+
+  _get(Object.getPrototypeOf(Snoocore.prototype), 'constructor', this).call(this);
+
+  // @TODO - this is a "god object" of sorts.
+  this._userConfig = new _UserConfig2['default'](userConfiguration);
+
+  this._throttle = new _Throttle2['default'](this._userConfig.throttle);
+
+  this._request = new _Request2['default'](this._throttle);
+
+  this._request.on('response_error', function (responseError) {
+    _this.emit('response_error', responseError);
+  });
+
+  // Two OAuth instances. One for authenticated users, and another for
+  // Application only OAuth. Two are needed in the instance where
+  // a user wants to bypass authentication for a call - we don't want
+  // to waste time by creating a new app only instance, authenticating,
+  // etc.
+  this.oauth = new _OAuth2['default'](this._userConfig, this._request);
+  this.oauthAppOnly = new _OAuth2['default'](this._userConfig, this._request);
+
+  // Expose OAuth functions in here
+  ['getExplicitAuthUrl', 'getImplicitAuthUrl', 'getAuthUrl', 'auth', 'refresh', 'deauth', 'getRefreshToken', 'getAccessToken', '
+setRefreshToken', 'setAccessToken', 'hasRefreshToken', 'hasAccessToken'].forEach(function (fn) {
+    _this[fn] = _this.oauth[fn].bind(_this.oauth);
+  });
+
+  if (this._userConfig.useBrowserCookies) {
+    this.modhash = new _Modhash2['default'](this._userConfig, this._request);
+
+    // Expose Modhash functions in here
+    ['isModhashOld', 'setModhash', 'getModhash', 'getCurrentModhash', 'refreshModhash'].forEach(function (fn) {
+      _this[fn] = _this.modhash[fn].bind(_this.modhash);
+    });
+  }
+
+  this.appOnlyAuth = this.oauthAppOnly.applicationOnlyAuth.bind(this.oauthAppOnly);
+
+  // Bubble up the  events
+  this.oauth.on('access_token_refreshed', function (accessToken) {
+    _this.emit('access_token_refreshed', accessToken);
+  });
+
+  this._redditRequest = new _RedditRequest2['default'](this._userConfig, this._request, this.oauth, this.oauthAppOnly, this.modhash
+);
+
+  this._redditRequest.on('access_token_expired', function (responseError) {
+    _this.emit('access_token_expired', responseError);
+  });
+
+  this._redditRequest.on('rate_limit', function (rateLimitData) {
+    _this.emit('rate_limit', rateLimitData);
+  });
+
+  this._redditRequest.on('rate_limit_reached', function (rateLimitData) {
+    // let the user know that they have gone over
+    _this.emit('rate_limit_reached', rateLimitData);
+    // Delay the next call until the rate limit reset occurs
+    _this._throttle.addTime(rateLimitData.rateLimitReset * 1000);
+  });
+
+<span class="apidocCodeCommentSpan">  /*
+     Make this._redditRequest.path the primary function that we return, but
+     stick the rest of the available functions on the prototype so we
+     can use them as well.
+   */
+</span>  var path = this._redditRequest.path.bind(this._redditRequest);
+
+  var key = undefined;
+  for (key in this) {
+    path[key] = this[key];
+  }
+
+  return path;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
+</body></html>
